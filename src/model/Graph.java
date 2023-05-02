@@ -39,12 +39,11 @@ public class Graph{
    * Nachdem die Ergebnisliste fertiggestellt wurde, wird ihr erstes Element das aktuelle Element innerhalb dieser Liste.
    */
   public List<Vertex> getVertices(){
-    //Eine neue Liste mit allen Vertex-Objekten erstellen.
     List<Vertex> result = new List<Vertex>();
 
+    result.concat(vertices);
     //TODO 01: Einmal Liste kopieren, bitte! Warum eigentlich kopieren? (O_o)
 
-    //Aktuelles Element zum Anfang bewegen.
     result.toFirst();
 
     return result;
@@ -58,6 +57,7 @@ public class Graph{
     //Eine neue Liste mit allen Edge-Objekten erstellen.
     List<Edge> result = new List<Edge>();
 
+    result.concat(edges);
     //TODO 02: Und nochmal kopieren.
 
     //Aktuelles Element zum Anfang bewegen.
@@ -71,7 +71,13 @@ public class Graph{
    * wird null zurueckgeliefert.
    */
   public Vertex getVertex(String pID){
+    Vertex output;
 
+    vertices.toFirst();
+    while(vertices.hasAccess()){
+      if(vertices.getContent().getID().equalsIgnoreCase(pID))  return vertices.getContent();
+      vertices.next();
+    }
     //TODO 03: Knoten-Objekt finden.
 
     return null;
@@ -84,6 +90,15 @@ public class Graph{
    */
   public void addVertex(Vertex pVertex){
     //TODO 04: Neues Knoten-Objekt hinzufügen.
+    vertices.toFirst();
+    while(vertices.hasAccess() && !pVertex.getID().equalsIgnoreCase(vertices.getContent().getID())){
+      vertices.next();
+    }
+
+    if(!vertices.hasAccess()){
+      vertices.append(pVertex);
+    }
+
   }
 
   /**
