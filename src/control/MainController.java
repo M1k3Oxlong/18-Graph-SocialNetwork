@@ -39,6 +39,10 @@ public class MainController {
      */
     public boolean insertUser(String name){
         //TODO 05: Nutzer dem sozialen Netzwerk hinzufügen.
+        if(allUsers.getVertex(name) == null){
+            allUsers.addVertex(new Vertex(name));
+            return true;
+        }
         return false;
     }
 
@@ -49,6 +53,10 @@ public class MainController {
      */
     public boolean deleteUser(String name){
         //TODO 07: Nutzer aus dem sozialen Netzwerk entfernen.
+        if(allUsers.getVertex(name) != null){
+            allUsers.removeVertex(allUsers.getVertex(name));
+            return true;
+        }
         return false;
     }
 
@@ -58,6 +66,25 @@ public class MainController {
      */
     public String[] getAllUsers(){
         //TODO 06: String-Array mit allen Nutzernamen erstellen.
+        if(allUsers!=null && !allUsers.isEmpty()){
+            List<Vertex> userList = allUsers.getVertices();
+
+            userList.toFirst();
+            int count = 0;
+            while(userList.hasAccess()){
+                count++;
+                userList.next();
+            }
+            String[] result = new String[count];
+            userList.toFirst();
+            for(int i = 0; i < result.length; i++){
+                result[i] = userList.getContent().getID();
+                userList.next();
+            }
+            System.out.println(result[0] + "mm");
+            return result;
+        }
+
         return null;
     }
 
@@ -91,6 +118,19 @@ public class MainController {
      */
     public boolean befriend(String name01, String name02){
         //TODO 08: Freundschaften schließen.
+        Vertex v1 = allUsers.getVertex(name01);
+        Vertex v2 = allUsers.getVertex(name02);
+
+        if(v2!=null && v1!=null){
+            List<Vertex> b = allUsers.getNeighbours(v1);
+            b.toFirst();
+            while (b.hasAccess()){
+                if(b.getContent() == v2) return false;
+                b.next();
+            }
+            allUsers.addEdge(new Edge(v1 , v2 , 1));
+            return true;
+        }
         return false;
     }
 
@@ -112,7 +152,22 @@ public class MainController {
      */
     public double dense(){
         //TODO 12: Dichte berechnen.
-        return 0.12334455676;
+        double density = 0.0;
+
+        List<Edge> edgeList = allUsers.getEdges();
+        edgeList.toFirst();
+        double amountOfEdges = 0.0;
+        while(edgeList.hasAccess()){
+            amountOfEdges++;
+            edgeList.next();
+        }
+        if(getAllUsers().length == 0) return -1.0;
+        return amountOfEdges / mgFac(4);
+    }
+
+    public double mgFac(double n){
+        if(n<=0) return 0;
+        return n + mgFac(n-1);
     }
 
     /**
@@ -127,8 +182,49 @@ public class MainController {
         Vertex user02 = allUsers.getVertex(name02);
         if(user01 != null && user02 != null){
             //TODO 13: Schreibe einen Algorithmus, der mindestens eine Verbindung von einem Nutzer über Zwischennutzer zu einem anderem Nutzer bestimmt. Happy Kopfzerbrechen!
+            //Liste zum Zwischenspeichern anlegen
+            List<Vertex> path = new List<>();
+            //Knoten markieren, der Liste hinzufügen
+            user01.setMark(true);
+            path.append(user01);
+            //Solange Liste nicht leer und Zielknoten nicht in Liste
+            while(!path.isEmpty() && !user02.isMarked()) {
+                //Ersten unmarkierten Nachbarn vom letzten Knoten suchen
+                path.toLast();
+                List<Vertex> neighbours = allUsers.getNeighbours(path.getContent());
+                neighbours.toFirst();
+                while (neighbours.hasAccess() && neighbours.getContent().isMarked()){
+                    neighbours.next();
+                }
+                //Falls da: Markieren und der Liste hinzufügen
+                //Sonst: Letzten Knoten aus der Liste entfernen
+                if(neighbours.hasAccess()){
+                    path.append(neighbours.getContent());
+                    neighbours.getContent().setMark(true);
+                }else{
+                    path.toLast();
+                    path.remove();
+                }
+            }
+            //Alle Knoten demarkieren
+            allUsers.setAllVertexMarks(false);
+            //Liste nicht leer -> Baue Array
+            if(!path.isEmpty()){
+                int size = 0;
+                for(path.toFirst(); path.hasAccess(); path.next()){
+                    size++;
+                }
+                String[] output = new String[size];
+                path.toFirst();
+                for(int i = 0; i < output.length; i++){
+                    output[i] = path.getContent().getID();
+                    path.next();
+                }
+                return output;
+            }
         }
         return null;
+
     }
 
     /**
@@ -149,7 +245,7 @@ public class MainController {
         //TODO 15: Schreibe einen Algorithmus, der ausgehend vom ersten Knoten in der Liste aller Knoten versucht, alle anderen Knoten über Kanten zu erreichen und zu markieren.
         return false;
     }
-    
+
     /**
      * Gibt einen String-Array zu allen Knoten zurück, die von einem Knoten ausgehend erreichbar sind, falls die Person vorhanden ist.
      * Im Anschluss werden vor der Rückgabe alle Knoten demarkiert.
@@ -157,6 +253,24 @@ public class MainController {
      */
     public String[] transitiveFriendships(String name){
         //TODO 16: Schreibe einen Algorithmus, der ausgehend von einem Knoten alle erreichbaren ausgibt.
+        if(name!=null && allUsers.getVertex(name)!=null){
+            String[] allUsersArray = getAllUsers();
+            String[] output;
+            int tFCount = 0;
+            for(int i=0; i < allUsersArray.length; i++){
+                if(allUsersArray[i]!=name && getLinksBetween(name, allUsersArray[i])!=null){
+                    tFCount++;
+                }
+            }
+            output = new String[tFCount];
+            int j = 0;
+            for(int i=0; i < allUsersArray.length; i++){
+                if(allUsersArray[i]!=name && getLinksBetween(name, allUsersArray[i])!=null){
+                    output[j] = allUsersArray[i];
+                }
+            }
+            return output;
+        }
         return null;
     }
     
